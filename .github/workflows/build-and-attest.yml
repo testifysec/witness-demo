@@ -88,20 +88,20 @@ jobs:
           echo "Use these GraphQL queries at https://archivista.testifysec.io/query" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          echo "### Find attestations by subject (image digest)" >> $GITHUB_STEP_SUMMARY
+          echo "### Find attestations by image name" >> $GITHUB_STEP_SUMMARY
           echo '```graphql' >> $GITHUB_STEP_SUMMARY
           echo 'query {' >> $GITHUB_STEP_SUMMARY
           echo '  subjects(where: {' >> $GITHUB_STEP_SUMMARY
-          echo '    name: { _eq: "ghcr.io/testifysec/witness-demo" }' >> $GITHUB_STEP_SUMMARY
+          echo '    nameContains: "witness-demo"' >> $GITHUB_STEP_SUMMARY
           echo '  }) {' >> $GITHUB_STEP_SUMMARY
-          echo '    name' >> $GITHUB_STEP_SUMMARY
-          echo '    digest' >> $GITHUB_STEP_SUMMARY
-          echo '    statements {' >> $GITHUB_STEP_SUMMARY
-          echo '      predicate_type' >> $GITHUB_STEP_SUMMARY
-          echo '      attestation_collections {' >> $GITHUB_STEP_SUMMARY
+          echo '    edges {' >> $GITHUB_STEP_SUMMARY
+          echo '      node {' >> $GITHUB_STEP_SUMMARY
           echo '        name' >> $GITHUB_STEP_SUMMARY
-          echo '        attestations {' >> $GITHUB_STEP_SUMMARY
-          echo '          type' >> $GITHUB_STEP_SUMMARY
+          echo '        statement {' >> $GITHUB_STEP_SUMMARY
+          echo '          predicate' >> $GITHUB_STEP_SUMMARY
+          echo '          attestationCollections {' >> $GITHUB_STEP_SUMMARY
+          echo '            name' >> $GITHUB_STEP_SUMMARY
+          echo '          }' >> $GITHUB_STEP_SUMMARY
           echo '        }' >> $GITHUB_STEP_SUMMARY
           echo '      }' >> $GITHUB_STEP_SUMMARY
           echo '    }' >> $GITHUB_STEP_SUMMARY
@@ -110,35 +110,51 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          echo "### Get SLSA provenance for this build" >> $GITHUB_STEP_SUMMARY
+          echo "### Get recent DSSE envelopes with attestations" >> $GITHUB_STEP_SUMMARY
           echo '```graphql' >> $GITHUB_STEP_SUMMARY
           echo 'query {' >> $GITHUB_STEP_SUMMARY
-          echo '  statements(where: {' >> $GITHUB_STEP_SUMMARY
-          echo '    predicate_type: { _eq: "https://slsa.dev/provenance/v1" }' >> $GITHUB_STEP_SUMMARY
-          echo '    subjects: {' >> $GITHUB_STEP_SUMMARY
-          echo '      name: { _eq: "ghcr.io/testifysec/witness-demo" }' >> $GITHUB_STEP_SUMMARY
+          echo '  dsses(first: 5) {' >> $GITHUB_STEP_SUMMARY
+          echo '    edges {' >> $GITHUB_STEP_SUMMARY
+          echo '      node {' >> $GITHUB_STEP_SUMMARY
+          echo '        gitoidSha256' >> $GITHUB_STEP_SUMMARY
+          echo '        payloadType' >> $GITHUB_STEP_SUMMARY
+          echo '        statement {' >> $GITHUB_STEP_SUMMARY
+          echo '          predicate' >> $GITHUB_STEP_SUMMARY
+          echo '          subjects {' >> $GITHUB_STEP_SUMMARY
+          echo '            edges {' >> $GITHUB_STEP_SUMMARY
+          echo '              node {' >> $GITHUB_STEP_SUMMARY
+          echo '                name' >> $GITHUB_STEP_SUMMARY
+          echo '              }' >> $GITHUB_STEP_SUMMARY
+          echo '            }' >> $GITHUB_STEP_SUMMARY
+          echo '          }' >> $GITHUB_STEP_SUMMARY
+          echo '        }' >> $GITHUB_STEP_SUMMARY
+          echo '      }' >> $GITHUB_STEP_SUMMARY
           echo '    }' >> $GITHUB_STEP_SUMMARY
-          echo '  }) {' >> $GITHUB_STEP_SUMMARY
-          echo '    predicate' >> $GITHUB_STEP_SUMMARY
           echo '  }' >> $GITHUB_STEP_SUMMARY
           echo '}' >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          echo "### View all attestation types for this repo" >> $GITHUB_STEP_SUMMARY
+          echo "### Search by GitOID (after build completes)" >> $GITHUB_STEP_SUMMARY
           echo '```graphql' >> $GITHUB_STEP_SUMMARY
           echo 'query {' >> $GITHUB_STEP_SUMMARY
-          echo '  attestations(where: {' >> $GITHUB_STEP_SUMMARY
-          echo '    attestation_collection: {' >> $GITHUB_STEP_SUMMARY
-          echo '      statement: {' >> $GITHUB_STEP_SUMMARY
-          echo '        subjects: {' >> $GITHUB_STEP_SUMMARY
-          echo '          name: { _ilike: "%witness-demo%" }' >> $GITHUB_STEP_SUMMARY
+          echo '  dsses(where: {' >> $GITHUB_STEP_SUMMARY
+          echo '    gitoidSha256: "<GITOID_FROM_BUILD>"' >> $GITHUB_STEP_SUMMARY
+          echo '  }) {' >> $GITHUB_STEP_SUMMARY
+          echo '    edges {' >> $GITHUB_STEP_SUMMARY
+          echo '      node {' >> $GITHUB_STEP_SUMMARY
+          echo '        gitoidSha256' >> $GITHUB_STEP_SUMMARY
+          echo '        signatures {' >> $GITHUB_STEP_SUMMARY
+          echo '          keyID' >> $GITHUB_STEP_SUMMARY
+          echo '          signature' >> $GITHUB_STEP_SUMMARY
+          echo '        }' >> $GITHUB_STEP_SUMMARY
+          echo '        statement {' >> $GITHUB_STEP_SUMMARY
+          echo '          attestationCollections {' >> $GITHUB_STEP_SUMMARY
+          echo '            name' >> $GITHUB_STEP_SUMMARY
+          echo '          }' >> $GITHUB_STEP_SUMMARY
           echo '        }' >> $GITHUB_STEP_SUMMARY
           echo '      }' >> $GITHUB_STEP_SUMMARY
           echo '    }' >> $GITHUB_STEP_SUMMARY
-          echo '  }) {' >> $GITHUB_STEP_SUMMARY
-          echo '    type' >> $GITHUB_STEP_SUMMARY
-          echo '    body' >> $GITHUB_STEP_SUMMARY
           echo '  }' >> $GITHUB_STEP_SUMMARY
           echo '}' >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
