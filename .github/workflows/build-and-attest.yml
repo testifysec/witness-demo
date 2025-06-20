@@ -111,10 +111,14 @@ jobs:
           # Add Archivista GraphQL query examples
           echo "## Query Attestations in Archivista" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Use these GraphQL queries at https://archivista.testifysec.io/query" >> $GITHUB_STEP_SUMMARY
+          echo "Use these GraphQL queries at [Archivista Query Explorer](https://archivista.testifysec.io/query)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Click the links below to open pre-populated queries:" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
           echo "### 🔍 Find all container images built from this repository" >> $GITHUB_STEP_SUMMARY
+          echo "[▶️ Run this query](https://archivista.testifysec.io/query?query=%7B%0A%20%20subjects(where%3A%20%7B%0A%20%20%20%20nameContains%3A%20%22ghcr.io%2Ftestifysec%2Fwitness-demo%22%0A%20%20%7D)%20%7B%0A%20%20%20%20edges%20%7B%0A%20%20%20%20%20%20node%20%7B%0A%20%20%20%20%20%20%20%20name%0A%20%20%20%20%20%20%20%20subjectDigests%20%7B%0A%20%20%20%20%20%20%20%20%20%20algorithm%0A%20%20%20%20%20%20%20%20%20%20value%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           echo '```graphql' >> $GITHUB_STEP_SUMMARY
           echo 'query {' >> $GITHUB_STEP_SUMMARY
           echo '  subjects(where: {' >> $GITHUB_STEP_SUMMARY
@@ -135,6 +139,8 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           
           echo "### 🏗️ Find builds by GitHub actor (who triggered the build)" >> $GITHUB_STEP_SUMMARY
+          echo "[▶️ Run this query](https://archivista.testifysec.io/query?query=%7B%0A%20%20subjects(where%3A%20%7B%0A%20%20%20%20nameContains%3A%20%22github.com%2Ftestifysec%2Fwitness-demo%2Factions%22%0A%20%20%7D)%20%7B%0A%20%20%20%20edges%20%7B%0A%20%20%20%20%20%20node%20%7B%0A%20%20%20%20%20%20%20%20name%0A%20%20%20%20%20%20%20%20statement%20%7B%0A%20%20%20%20%20%20%20%20%20%20predicate%0A%20%20%20%20%20%20%20%20%20%20attestationCollections%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20attestations%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20body%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           echo '```graphql' >> $GITHUB_STEP_SUMMARY
           echo 'query {' >> $GITHUB_STEP_SUMMARY
           echo '  subjects(where: {' >> $GITHUB_STEP_SUMMARY
@@ -159,6 +165,8 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           
           echo "### 🔐 Get full attestation bundle by GitOID" >> $GITHUB_STEP_SUMMARY
+          echo "[▶️ Run this query](https://archivista.testifysec.io/query?query=query%20AttestationByGitOID(%24gitoid%3A%20String!)%20%7B%0A%20%20dsses(where%3A%20%7B%0A%20%20%20%20gitoidSha256%3A%20%24gitoid%0A%20%20%7D)%20%7B%0A%20%20%20%20edges%20%7B%0A%20%20%20%20%20%20node%20%7B%0A%20%20%20%20%20%20%20%20gitoidSha256%0A%20%20%20%20%20%20%20%20payloadType%0A%20%20%20%20%20%20%20%20signatures%20%7B%0A%20%20%20%20%20%20%20%20%20%20keyID%0A%20%20%20%20%20%20%20%20%20%20signature%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20payloadDigests%20%7B%0A%20%20%20%20%20%20%20%20%20%20algorithm%0A%20%20%20%20%20%20%20%20%20%20value%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20statement%20%7B%0A%20%20%20%20%20%20%20%20%20%20predicate%0A%20%20%20%20%20%20%20%20%20%20subjects%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20edges%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20node%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20name%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D&variables=%7B%22gitoid%22%3A%20%22%22%7D)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           echo '```graphql' >> $GITHUB_STEP_SUMMARY
           echo 'query AttestationByGitOID($gitoid: String!) {' >> $GITHUB_STEP_SUMMARY
           echo '  dsses(where: {' >> $GITHUB_STEP_SUMMARY
@@ -194,6 +202,8 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           
           echo "### 🐳 Find attestations for specific Docker image digest" >> $GITHUB_STEP_SUMMARY
+          echo "[▶️ Run this query](https://archivista.testifysec.io/query?query=query%20ImageByDigest(%24digest%3A%20String!)%20%7B%0A%20%20subjects(where%3A%20%7B%0A%20%20%20%20nameContains%3A%20%22ghcr.io%22%0A%20%20%20%20subjectDigests%3A%20%7B%0A%20%20%20%20%20%20value%3A%20%24digest%0A%20%20%20%20%7D%0A%20%20%7D)%20%7B%0A%20%20%20%20edges%20%7B%0A%20%20%20%20%20%20node%20%7B%0A%20%20%20%20%20%20%20%20name%0A%20%20%20%20%20%20%20%20statement%20%7B%0A%20%20%20%20%20%20%20%20%20%20dsse%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20edges%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20node%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20gitoidSha256%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D&variables=%7B%22digest%22%3A%20%22%22%7D)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           echo '```graphql' >> $GITHUB_STEP_SUMMARY
           echo 'query ImageByDigest($digest: String!) {' >> $GITHUB_STEP_SUMMARY
           echo '  subjects(where: {' >> $GITHUB_STEP_SUMMARY
@@ -222,6 +232,8 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           
           echo "### 🔍 Find all SLSA provenance attestations" >> $GITHUB_STEP_SUMMARY
+          echo "[▶️ Run this query](https://archivista.testifysec.io/query?query=%7B%0A%20%20dsses(where%3A%20%7B%0A%20%20%20%20payloadType%3A%20%22application%2Fvnd.in-toto%2Bjson%22%0A%20%20%7D%2C%20first%3A%2010)%20%7B%0A%20%20%20%20edges%20%7B%0A%20%20%20%20%20%20node%20%7B%0A%20%20%20%20%20%20%20%20gitoidSha256%0A%20%20%20%20%20%20%20%20statement%20%7B%0A%20%20%20%20%20%20%20%20%20%20predicate%0A%20%20%20%20%20%20%20%20%20%20subjects%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20edges%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20node%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20name%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           echo '```graphql' >> $GITHUB_STEP_SUMMARY
           echo 'query {' >> $GITHUB_STEP_SUMMARY
           echo '  dsses(where: {' >> $GITHUB_STEP_SUMMARY
