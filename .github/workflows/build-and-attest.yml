@@ -48,18 +48,7 @@ jobs:
         uses: testifysec/witness-run-action@v0.3.0
         with:
           step: docker-build
-          command: |
-            docker buildx build \
-              --push \
-              --platform linux/amd64,linux/arm64 \
-              --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
-              --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
-              --metadata-file docker-metadata.json \
-              --provenance=true \
-              --sbom=true \
-              --cache-from type=gha \
-              --cache-to type=gha,mode=max \
-              .
+          command: docker buildx build --push --platform linux/amd64,linux/arm64 --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest --metadata-file docker-metadata.json --provenance=true --sbom=true --cache-from type=gha --cache-to type=gha,mode=max .
           enable-sigstore: true
           enable-archivista: true
 
