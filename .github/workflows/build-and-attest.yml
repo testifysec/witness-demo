@@ -49,7 +49,7 @@ jobs:
         with:
           step: docker-build
           command: docker buildx build --push --platform linux/amd64 --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest --metadata-file docker-metadata.json --provenance=true --sbom=true --cache-from type=gha --cache-to type=gha,mode=max .
-          attestations: docker slsa environment git github secretscan
+          attestations: docker slsa git github secretscan
           attestor-slsa-export: true
           enable-sigstore: true
           enable-archivista: true
