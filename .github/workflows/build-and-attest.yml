@@ -85,27 +85,14 @@ jobs:
 
       - name: Generate attestation summary and Archivista queries
         run: |
-          echo "## Build Attestation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## Witness Attestation Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Container image built and pushed to GHCR" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Provenance captured with Witness" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Signed with Sigstore" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Attestation uploaded to Archivista" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Provenance captured with Witness** - Complete build attestations generated" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Uploaded to Archivista** - Attestations stored for verification and querying" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Image:** \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Witness** captured attestations for: Git state, GitHub context, build commands, materials, products, Docker metadata, SLSA provenance, and secret scanning." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
-          echo "### 📋 Attestations Captured" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "The following attestations were generated:" >> $GITHUB_STEP_SUMMARY
-          echo "- **Git**: Repository state and commit information" >> $GITHUB_STEP_SUMMARY
-          echo "- **GitHub**: GitHub Actions context (workflow, runner, OIDC token)" >> $GITHUB_STEP_SUMMARY
-          echo "- **Command Run**: Exact build command executed" >> $GITHUB_STEP_SUMMARY
-          echo "- **Materials**: Input files used in the build" >> $GITHUB_STEP_SUMMARY
-          echo "- **Products**: Output files created (docker-metadata.json)" >> $GITHUB_STEP_SUMMARY
-          echo "- **Docker**: Container image digest and build materials" >> $GITHUB_STEP_SUMMARY
-          echo "- **SLSA**: Complete SLSA v1.0 provenance predicate" >> $GITHUB_STEP_SUMMARY
-          echo "- **Secret Scan**: Verification that no secrets were exposed" >> $GITHUB_STEP_SUMMARY
+          echo "**Archivista** provides a GraphQL API to query and verify these attestations." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Add Archivista GraphQL query examples
@@ -138,8 +125,8 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          echo "### 🏗️ Find builds by GitHub actor (who triggered the build)" >> $GITHUB_STEP_SUMMARY
-          echo "[▶️ Run this query](https://archivista.testifysec.io/query?query=%7B%0A%20%20subjects(where%3A%20%7B%0A%20%20%20%20nameContains%3A%20%22github.com%2Ftestifysec%2Fwitness-demo%2Factions%22%0A%20%20%7D)%20%7B%0A%20%20%20%20edges%20%7B%0A%20%20%20%20%20%20node%20%7B%0A%20%20%20%20%20%20%20%20name%0A%20%20%20%20%20%20%20%20statement%20%7B%0A%20%20%20%20%20%20%20%20%20%20predicate%0A%20%20%20%20%20%20%20%20%20%20attestationCollections%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20attestations%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20body%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D)" >> $GITHUB_STEP_SUMMARY
+          echo "### 🏗️ Find builds from this GitHub repository" >> $GITHUB_STEP_SUMMARY
+          echo "[▶️ Run this query](https://archivista.testifysec.io/query?query=%7B%0A%20%20subjects(where%3A%20%7B%0A%20%20%20%20nameContains%3A%20%22github.com%2Ftestifysec%2Fwitness-demo%2Factions%22%0A%20%20%7D)%20%7B%0A%20%20%20%20edges%20%7B%0A%20%20%20%20%20%20node%20%7B%0A%20%20%20%20%20%20%20%20name%0A%20%20%20%20%20%20%20%20statement%20%7B%0A%20%20%20%20%20%20%20%20%20%20predicate%0A%20%20%20%20%20%20%20%20%20%20attestationCollections%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20name%0A%20%20%20%20%20%20%20%20%20%20%20%20attestations%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20type%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo '```graphql' >> $GITHUB_STEP_SUMMARY
           echo 'query {' >> $GITHUB_STEP_SUMMARY
@@ -152,8 +139,9 @@ jobs:
           echo '        statement {' >> $GITHUB_STEP_SUMMARY
           echo '          predicate' >> $GITHUB_STEP_SUMMARY
           echo '          attestationCollections {' >> $GITHUB_STEP_SUMMARY
+          echo '            name' >> $GITHUB_STEP_SUMMARY
           echo '            attestations {' >> $GITHUB_STEP_SUMMARY
-          echo '              body' >> $GITHUB_STEP_SUMMARY
+          echo '              type' >> $GITHUB_STEP_SUMMARY
           echo '            }' >> $GITHUB_STEP_SUMMARY
           echo '          }' >> $GITHUB_STEP_SUMMARY
           echo '        }' >> $GITHUB_STEP_SUMMARY
@@ -201,27 +189,24 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          echo "### 🐳 Find attestations for specific Docker image digest" >> $GITHUB_STEP_SUMMARY
-          echo "[▶️ Run this query](https://archivista.testifysec.io/query?query=query%20ImageByDigest(%24digest%3A%20String!)%20%7B%0A%20%20subjects(where%3A%20%7B%0A%20%20%20%20nameContains%3A%20%22ghcr.io%22%0A%20%20%20%20subjectDigests%3A%20%7B%0A%20%20%20%20%20%20value%3A%20%24digest%0A%20%20%20%20%7D%0A%20%20%7D)%20%7B%0A%20%20%20%20edges%20%7B%0A%20%20%20%20%20%20node%20%7B%0A%20%20%20%20%20%20%20%20name%0A%20%20%20%20%20%20%20%20statement%20%7B%0A%20%20%20%20%20%20%20%20%20%20dsse%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20edges%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20node%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20gitoidSha256%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D&variables=%7B%22digest%22%3A%20%22%22%7D)" >> $GITHUB_STEP_SUMMARY
+          echo "### 🐳 Find Docker attestations for this repository" >> $GITHUB_STEP_SUMMARY
+          echo "[▶️ Run this query](https://archivista.testifysec.io/query?query=%7B%0A%20%20subjects(where%3A%20%7B%0A%20%20%20%20nameContains%3A%20%22docker/v0.1/imagereference%3Aghcr.io%2Ftestifysec%2Fwitness-demo%22%0A%20%20%7D)%20%7B%0A%20%20%20%20edges%20%7B%0A%20%20%20%20%20%20node%20%7B%0A%20%20%20%20%20%20%20%20name%0A%20%20%20%20%20%20%20%20subjectDigests%20%7B%0A%20%20%20%20%20%20%20%20%20%20algorithm%0A%20%20%20%20%20%20%20%20%20%20value%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20statement%20%7B%0A%20%20%20%20%20%20%20%20%20%20attestationCollections%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20name%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo '```graphql' >> $GITHUB_STEP_SUMMARY
-          echo 'query ImageByDigest($digest: String!) {' >> $GITHUB_STEP_SUMMARY
+          echo 'query {' >> $GITHUB_STEP_SUMMARY
           echo '  subjects(where: {' >> $GITHUB_STEP_SUMMARY
-          echo '    nameContains: "ghcr.io"' >> $GITHUB_STEP_SUMMARY
-          echo '    subjectDigests: {' >> $GITHUB_STEP_SUMMARY
-          echo '      value: $digest' >> $GITHUB_STEP_SUMMARY
-          echo '    }' >> $GITHUB_STEP_SUMMARY
+          echo '    nameContains: "docker/v0.1/imagereference:ghcr.io/testifysec/witness-demo"' >> $GITHUB_STEP_SUMMARY
           echo '  }) {' >> $GITHUB_STEP_SUMMARY
           echo '    edges {' >> $GITHUB_STEP_SUMMARY
           echo '      node {' >> $GITHUB_STEP_SUMMARY
           echo '        name' >> $GITHUB_STEP_SUMMARY
+          echo '        subjectDigests {' >> $GITHUB_STEP_SUMMARY
+          echo '          algorithm' >> $GITHUB_STEP_SUMMARY
+          echo '          value' >> $GITHUB_STEP_SUMMARY
+          echo '        }' >> $GITHUB_STEP_SUMMARY
           echo '        statement {' >> $GITHUB_STEP_SUMMARY
-          echo '          dsse {' >> $GITHUB_STEP_SUMMARY
-          echo '            edges {' >> $GITHUB_STEP_SUMMARY
-          echo '              node {' >> $GITHUB_STEP_SUMMARY
-          echo '                gitoidSha256' >> $GITHUB_STEP_SUMMARY
-          echo '              }' >> $GITHUB_STEP_SUMMARY
-          echo '            }' >> $GITHUB_STEP_SUMMARY
+          echo '          attestationCollections {' >> $GITHUB_STEP_SUMMARY
+          echo '            name' >> $GITHUB_STEP_SUMMARY
           echo '          }' >> $GITHUB_STEP_SUMMARY
           echo '        }' >> $GITHUB_STEP_SUMMARY
           echo '      }' >> $GITHUB_STEP_SUMMARY
