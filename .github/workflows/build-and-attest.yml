@@ -57,15 +57,28 @@ jobs:
       - name: Display attestation metadata
         id: attestation
         run: |
-          # Extract GitOID from witness output (stored in step output)
           echo "## Attestation Metadata" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Parse docker metadata
           if [ -f docker-metadata.json ]; then
-            echo "### Docker Build Metadata" >> $GITHUB_STEP_SUMMARY
+            echo "### 📦 Docker Build Output" >> $GITHUB_STEP_SUMMARY
             echo '```json' >> $GITHUB_STEP_SUMMARY
             jq '{"image": .["image.name"], "digest": .["containerimage.digest"], "size": .["containerimage.descriptor"].size}' docker-metadata.json >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Extract key metadata for easy reference
+            IMAGE_DIGEST=$(jq -r '.["containerimage.digest"]' docker-metadata.json)
+            echo "**Image Digest:** \`$IMAGE_DIGEST\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # SLSA metadata preview
+          if [ -f slsa-predicate.json ]; then
+            echo "### 🔐 SLSA Provenance Preview" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            jq '{buildType: .buildDefinition.buildType, builder: .runDetails.builder.id}' slsa-predicate.json >> $GITHUB_STEP_SUMMARY || echo "SLSA predicate will be generated"
             echo '```' >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           fi
@@ -80,6 +93,19 @@ jobs:
           echo "✅ Attestation uploaded to Archivista" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Image:** \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### 📋 Attestations Captured" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The following attestations were generated:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Git**: Repository state and commit information" >> $GITHUB_STEP_SUMMARY
+          echo "- **GitHub**: GitHub Actions context (workflow, runner, OIDC token)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Command Run**: Exact build command executed" >> $GITHUB_STEP_SUMMARY
+          echo "- **Materials**: Input files used in the build" >> $GITHUB_STEP_SUMMARY
+          echo "- **Products**: Output files created (docker-metadata.json)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Docker**: Container image digest and build materials" >> $GITHUB_STEP_SUMMARY
+          echo "- **SLSA**: Complete SLSA v1.0 provenance predicate" >> $GITHUB_STEP_SUMMARY
+          echo "- **Secret Scan**: Verification that no secrets were exposed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Add Archivista GraphQL query examples
