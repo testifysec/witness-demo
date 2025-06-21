@@ -10,13 +10,14 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
+permissions:
+  contents: read
+  packages: write
+  id-token: write  # Required for Sigstore signing
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-      id-token: write  # Required for Sigstore signing
 
     steps:
       - name: Checkout repository
@@ -44,31 +45,152 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push Docker image with Witness
-        uses: testifysec/witness-run-action@v0.1.7
+        uses: testifysec/witness-run-action@v0.3.0
         with:
           step: docker-build
-          command: |
-            docker buildx build \
-              --push \
-              --platform linux/amd64,linux/arm64 \
-              --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
-              --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
-              --metadata-file docker-metadata.json \
-              --provenance=true \
-              --sbom=true \
-              --cache-from type=gha \
-              --cache-to type=gha,mode=max \
-              .
+          command: docker buildx build --push --platform linux/amd64 --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest --metadata-file docker-metadata.json --provenance=true --sbom=true --cache-from type=gha --cache-to type=gha,mode=max .
+          attestations: docker slsa git github secretscan
+          attestor-slsa-export: true
           enable-sigstore: true
           enable-archivista: true
 
-      - name: Generate attestation summary
+      - name: Display attestation metadata
+        id: attestation
         run: |
-          echo "## Build Attestation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## Attestation Metadata" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Container image built and pushed to GHCR" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Provenance captured with Witness" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Signed with Sigstore" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Attestation uploaded to Archivista" >> $GITHUB_STEP_SUMMARY
+          
+          # Parse docker metadata
+          if [ -f docker-metadata.json ]; then
+            echo "### 📦 Docker Build Output" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            jq '{"image": .["image.name"], "digest": .["containerimage.digest"], "size": .["containerimage.descriptor"].size}' docker-metadata.json >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Extract key metadata for easy reference
+            IMAGE_DIGEST=$(jq -r '.["containerimage.digest"]' docker-metadata.json)
+            echo "**Image Digest:** \`$IMAGE_DIGEST\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # SLSA metadata preview
+          if [ -f slsa-predicate.json ]; then
+            echo "### 🔐 SLSA Provenance Preview" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            jq '{buildType: .buildDefinition.buildType, builder: .runDetails.builder.id}' slsa-predicate.json >> $GITHUB_STEP_SUMMARY || echo "SLSA predicate will be generated"
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Generate attestation summary and Archivista queries
+        run: |
+          echo "## Witness Attestation Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Image:** \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Provenance captured with Witness** - Complete build attestations generated" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Uploaded to Archivista** - Attestations stored for verification and querying" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Witness** captured attestations for: Git state, GitHub context, build commands, materials, products, Docker metadata, SLSA provenance, and secret scanning." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Archivista** provides a GraphQL API to query and verify these attestations." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Add Archivista GraphQL query examples
+          echo "## Query Attestations in Archivista" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Use these GraphQL queries at [Archivista Query Explorer](https://archivista.testifysec.io/query)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Click the links below to open pre-populated queries:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### 🔍 Get recent witness-demo attestations" >> $GITHUB_STEP_SUMMARY
+          echo "[▶️ Run this query](https://archivista.testifysec.io/query?query=%7B%0A%20%20dsses(where%3A%20%7B%0A%20%20%20%20hasStatementWith%3A%20%7B%0A%20%20%20%20%20%20hasSubjectsWith%3A%20%7B%0A%20%20%20%20%20%20%20%20nameContains%3A%20%22ghcr.io%2Ftestifysec%2Fwitness-demo%22%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%7D%2C%20first%3A%205)%20%7B%0A%20%20%20%20edges%20%7B%0A%20%20%20%20%20%20node%20%7B%0A%20%20%20%20%20%20%20%20gitoidSha256%0A%20%20%20%20%20%20%20%20payloadType%0A%20%20%20%20%20%20%20%20statement%20%7B%0A%20%20%20%20%20%20%20%20%20%20predicate%0A%20%20%20%20%20%20%20%20%20%20subjects%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20edges%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20node%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20name%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```graphql' >> $GITHUB_STEP_SUMMARY
+          echo 'query {' >> $GITHUB_STEP_SUMMARY
+          echo '  dsses(where: {' >> $GITHUB_STEP_SUMMARY
+          echo '    hasStatementWith: {' >> $GITHUB_STEP_SUMMARY
+          echo '      hasSubjectsWith: {' >> $GITHUB_STEP_SUMMARY
+          echo '        nameContains: "ghcr.io/testifysec/witness-demo"' >> $GITHUB_STEP_SUMMARY
+          echo '      }' >> $GITHUB_STEP_SUMMARY
+          echo '    }' >> $GITHUB_STEP_SUMMARY
+          echo '  }, first: 5) {' >> $GITHUB_STEP_SUMMARY
+          echo '    edges {' >> $GITHUB_STEP_SUMMARY
+          echo '      node {' >> $GITHUB_STEP_SUMMARY
+          echo '        gitoidSha256' >> $GITHUB_STEP_SUMMARY
+          echo '        payloadType' >> $GITHUB_STEP_SUMMARY
+          echo '        statement {' >> $GITHUB_STEP_SUMMARY
+          echo '          predicate' >> $GITHUB_STEP_SUMMARY
+          echo '          subjects {' >> $GITHUB_STEP_SUMMARY
+          echo '            edges {' >> $GITHUB_STEP_SUMMARY
+          echo '              node {' >> $GITHUB_STEP_SUMMARY
+          echo '                name' >> $GITHUB_STEP_SUMMARY
+          echo '              }' >> $GITHUB_STEP_SUMMARY
+          echo '            }' >> $GITHUB_STEP_SUMMARY
+          echo '          }' >> $GITHUB_STEP_SUMMARY
+          echo '        }' >> $GITHUB_STEP_SUMMARY
+          echo '      }' >> $GITHUB_STEP_SUMMARY
+          echo '    }' >> $GITHUB_STEP_SUMMARY
+          echo '  }' >> $GITHUB_STEP_SUMMARY
+          echo '}' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          
+          echo "### 🔍 Find SLSA provenance attestations for witness-demo builds" >> $GITHUB_STEP_SUMMARY
+          echo "[▶️ Run this query](https://archivista.testifysec.io/query?query=%7B%0A%20%20dsses(where%3A%20%7B%0A%20%20%20%20and%3A%20%5B%0A%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20hasStatementWith%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20predicateHasPrefix%3A%20%22https%3A%2F%2Fslsa.dev%2Fprovenance%2F%22%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20hasStatementWith%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20hasSubjectsWith%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20name%3A%20%22file%3Adocker-metadata.json%22%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%5D%0A%20%20%7D%2C%20first%3A%205)%20%7B%0A%20%20%20%20edges%20%7B%0A%20%20%20%20%20%20node%20%7B%0A%20%20%20%20%20%20%20%20gitoidSha256%0A%20%20%20%20%20%20%20%20statement%20%7B%0A%20%20%20%20%20%20%20%20%20%20predicate%0A%20%20%20%20%20%20%20%20%20%20subjects(first%3A%205)%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20edges%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20node%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20name%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```graphql' >> $GITHUB_STEP_SUMMARY
+          echo 'query {' >> $GITHUB_STEP_SUMMARY
+          echo '  dsses(where: {' >> $GITHUB_STEP_SUMMARY
+          echo '    and: [' >> $GITHUB_STEP_SUMMARY
+          echo '      {' >> $GITHUB_STEP_SUMMARY
+          echo '        hasStatementWith: {' >> $GITHUB_STEP_SUMMARY
+          echo '          predicateHasPrefix: "https://slsa.dev/provenance/"' >> $GITHUB_STEP_SUMMARY
+          echo '        }' >> $GITHUB_STEP_SUMMARY
+          echo '      },' >> $GITHUB_STEP_SUMMARY
+          echo '      {' >> $GITHUB_STEP_SUMMARY
+          echo '        hasStatementWith: {' >> $GITHUB_STEP_SUMMARY
+          echo '          hasSubjectsWith: {' >> $GITHUB_STEP_SUMMARY
+          echo '            name: "file:docker-metadata.json"' >> $GITHUB_STEP_SUMMARY
+          echo '          }' >> $GITHUB_STEP_SUMMARY
+          echo '        }' >> $GITHUB_STEP_SUMMARY
+          echo '      }' >> $GITHUB_STEP_SUMMARY
+          echo '    ]' >> $GITHUB_STEP_SUMMARY
+          echo '  }, first: 5) {' >> $GITHUB_STEP_SUMMARY
+          echo '    edges {' >> $GITHUB_STEP_SUMMARY
+          echo '      node {' >> $GITHUB_STEP_SUMMARY
+          echo '        gitoidSha256' >> $GITHUB_STEP_SUMMARY
+          echo '        statement {' >> $GITHUB_STEP_SUMMARY
+          echo '          predicate' >> $GITHUB_STEP_SUMMARY
+          echo '          subjects(first: 5) {' >> $GITHUB_STEP_SUMMARY
+          echo '            edges {' >> $GITHUB_STEP_SUMMARY
+          echo '              node {' >> $GITHUB_STEP_SUMMARY
+          echo '                name' >> $GITHUB_STEP_SUMMARY
+          echo '              }' >> $GITHUB_STEP_SUMMARY
+          echo '            }' >> $GITHUB_STEP_SUMMARY
+          echo '          }' >> $GITHUB_STEP_SUMMARY
+          echo '        }' >> $GITHUB_STEP_SUMMARY
+          echo '      }' >> $GITHUB_STEP_SUMMARY
+          echo '    }' >> $GITHUB_STEP_SUMMARY
+          echo '  }' >> $GITHUB_STEP_SUMMARY
+          echo '}' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### 📊 Download and analyze attestation locally" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo '# Download attestation by GitOID' >> $GITHUB_STEP_SUMMARY
+          echo 'curl -s https://archivista.testifysec.io/download/<GITOID> -o attestation.json' >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+          echo '# Decode and explore the attestation' >> $GITHUB_STEP_SUMMARY
+          echo 'jq -r ".payload" attestation.json | base64 -d | jq .' >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+          echo '# Extract specific attestation types' >> $GITHUB_STEP_SUMMARY
+          echo 'jq -r ".payload" attestation.json | base64 -d | \' >> $GITHUB_STEP_SUMMARY
+          echo '  jq ".predicate.attestations[] | select(.type == \"https://witness.dev/attestations/docker/v0.1\")"' >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+          echo '# Check GitHub actor from attestation' >> $GITHUB_STEP_SUMMARY
+          echo 'jq -r ".payload" attestation.json | base64 -d | \' >> $GITHUB_STEP_SUMMARY
+          echo '  jq ".predicate.attestations[] | select(.type == \"https://witness.dev/attestations/github/v0.1\") | .attestation.jwt.claims.actor"' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
