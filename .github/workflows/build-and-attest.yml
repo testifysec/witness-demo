@@ -103,8 +103,8 @@ jobs:
           echo "Click the links below to open pre-populated queries:" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          echo "### 🏗️ Find attestations for ghcr.io/testifysec/witness-demo images" >> $GITHUB_STEP_SUMMARY
-          echo "[▶️ Run this query](https://archivista.testifysec.io/query?query=%7B%0A%20%20dsses(where%3A%20%7B%0A%20%20%20%20hasStatementWith%3A%20%7B%0A%20%20%20%20%20%20hasSubjectsWith%3A%20%7B%0A%20%20%20%20%20%20%20%20nameContains%3A%20%22ghcr.io%2Ftestifysec%2Fwitness-demo%22%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%7D%2C%20first%3A%2010)%20%7B%0A%20%20%20%20edges%20%7B%0A%20%20%20%20%20%20node%20%7B%0A%20%20%20%20%20%20%20%20gitoidSha256%0A%20%20%20%20%20%20%20%20payloadType%0A%20%20%20%20%20%20%20%20statement%20%7B%0A%20%20%20%20%20%20%20%20%20%20predicate%0A%20%20%20%20%20%20%20%20%20%20subjects(first%3A%205)%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20edges%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20node%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20name%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20attestationCollections%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20name%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D)" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔍 Get recent witness-demo attestations" >> $GITHUB_STEP_SUMMARY
+          echo "[▶️ Run this query](https://archivista.testifysec.io/query?query=%7B%0A%20%20dsses(where%3A%20%7B%0A%20%20%20%20hasStatementWith%3A%20%7B%0A%20%20%20%20%20%20hasSubjectsWith%3A%20%7B%0A%20%20%20%20%20%20%20%20nameContains%3A%20%22ghcr.io%2Ftestifysec%2Fwitness-demo%22%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%7D%2C%20first%3A%205)%20%7B%0A%20%20%20%20edges%20%7B%0A%20%20%20%20%20%20node%20%7B%0A%20%20%20%20%20%20%20%20gitoidSha256%0A%20%20%20%20%20%20%20%20payloadType%0A%20%20%20%20%20%20%20%20statement%20%7B%0A%20%20%20%20%20%20%20%20%20%20predicate%0A%20%20%20%20%20%20%20%20%20%20subjects%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20edges%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20node%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20name%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo '```graphql' >> $GITHUB_STEP_SUMMARY
           echo 'query {' >> $GITHUB_STEP_SUMMARY
@@ -114,22 +114,19 @@ jobs:
           echo '        nameContains: "ghcr.io/testifysec/witness-demo"' >> $GITHUB_STEP_SUMMARY
           echo '      }' >> $GITHUB_STEP_SUMMARY
           echo '    }' >> $GITHUB_STEP_SUMMARY
-          echo '  }, first: 10) {' >> $GITHUB_STEP_SUMMARY
+          echo '  }, first: 5) {' >> $GITHUB_STEP_SUMMARY
           echo '    edges {' >> $GITHUB_STEP_SUMMARY
           echo '      node {' >> $GITHUB_STEP_SUMMARY
           echo '        gitoidSha256' >> $GITHUB_STEP_SUMMARY
           echo '        payloadType' >> $GITHUB_STEP_SUMMARY
           echo '        statement {' >> $GITHUB_STEP_SUMMARY
           echo '          predicate' >> $GITHUB_STEP_SUMMARY
-          echo '          subjects(first: 5) {' >> $GITHUB_STEP_SUMMARY
+          echo '          subjects {' >> $GITHUB_STEP_SUMMARY
           echo '            edges {' >> $GITHUB_STEP_SUMMARY
           echo '              node {' >> $GITHUB_STEP_SUMMARY
           echo '                name' >> $GITHUB_STEP_SUMMARY
           echo '              }' >> $GITHUB_STEP_SUMMARY
           echo '            }' >> $GITHUB_STEP_SUMMARY
-          echo '          }' >> $GITHUB_STEP_SUMMARY
-          echo '          attestationCollections {' >> $GITHUB_STEP_SUMMARY
-          echo '            name' >> $GITHUB_STEP_SUMMARY
           echo '          }' >> $GITHUB_STEP_SUMMARY
           echo '        }' >> $GITHUB_STEP_SUMMARY
           echo '      }' >> $GITHUB_STEP_SUMMARY
