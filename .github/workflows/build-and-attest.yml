@@ -137,16 +137,27 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           
           
-          echo "### 🔍 Find all SLSA provenance attestations" >> $GITHUB_STEP_SUMMARY
-          echo "[▶️ Run this query](https://archivista.testifysec.io/query?query=%7B%0A%20%20dsses(where%3A%20%7B%0A%20%20%20%20hasStatementWith%3A%20%7B%0A%20%20%20%20%20%20predicateHasPrefix%3A%20%22https%3A%2F%2Fslsa.dev%2Fprovenance%2F%22%0A%20%20%20%20%7D%0A%20%20%7D%2C%20first%3A%2010)%20%7B%0A%20%20%20%20edges%20%7B%0A%20%20%20%20%20%20node%20%7B%0A%20%20%20%20%20%20%20%20gitoidSha256%0A%20%20%20%20%20%20%20%20statement%20%7B%0A%20%20%20%20%20%20%20%20%20%20predicate%0A%20%20%20%20%20%20%20%20%20%20subjects(first%3A%205)%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20edges%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20node%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20name%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D)" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔍 Find SLSA provenance attestations for witness-demo builds" >> $GITHUB_STEP_SUMMARY
+          echo "[▶️ Run this query](https://archivista.testifysec.io/query?query=%7B%0A%20%20dsses(where%3A%20%7B%0A%20%20%20%20and%3A%20%5B%0A%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20hasStatementWith%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20predicateHasPrefix%3A%20%22https%3A%2F%2Fslsa.dev%2Fprovenance%2F%22%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20hasStatementWith%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20hasSubjectsWith%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20name%3A%20%22file%3Adocker-metadata.json%22%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%5D%0A%20%20%7D%2C%20first%3A%205)%20%7B%0A%20%20%20%20edges%20%7B%0A%20%20%20%20%20%20node%20%7B%0A%20%20%20%20%20%20%20%20gitoidSha256%0A%20%20%20%20%20%20%20%20statement%20%7B%0A%20%20%20%20%20%20%20%20%20%20predicate%0A%20%20%20%20%20%20%20%20%20%20subjects(first%3A%205)%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20edges%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20node%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20name%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo '```graphql' >> $GITHUB_STEP_SUMMARY
           echo 'query {' >> $GITHUB_STEP_SUMMARY
           echo '  dsses(where: {' >> $GITHUB_STEP_SUMMARY
-          echo '    hasStatementWith: {' >> $GITHUB_STEP_SUMMARY
-          echo '      predicateHasPrefix: "https://slsa.dev/provenance/"' >> $GITHUB_STEP_SUMMARY
-          echo '    }' >> $GITHUB_STEP_SUMMARY
-          echo '  }, first: 10) {' >> $GITHUB_STEP_SUMMARY
+          echo '    and: [' >> $GITHUB_STEP_SUMMARY
+          echo '      {' >> $GITHUB_STEP_SUMMARY
+          echo '        hasStatementWith: {' >> $GITHUB_STEP_SUMMARY
+          echo '          predicateHasPrefix: "https://slsa.dev/provenance/"' >> $GITHUB_STEP_SUMMARY
+          echo '        }' >> $GITHUB_STEP_SUMMARY
+          echo '      },' >> $GITHUB_STEP_SUMMARY
+          echo '      {' >> $GITHUB_STEP_SUMMARY
+          echo '        hasStatementWith: {' >> $GITHUB_STEP_SUMMARY
+          echo '          hasSubjectsWith: {' >> $GITHUB_STEP_SUMMARY
+          echo '            name: "file:docker-metadata.json"' >> $GITHUB_STEP_SUMMARY
+          echo '          }' >> $GITHUB_STEP_SUMMARY
+          echo '        }' >> $GITHUB_STEP_SUMMARY
+          echo '      }' >> $GITHUB_STEP_SUMMARY
+          echo '    ]' >> $GITHUB_STEP_SUMMARY
+          echo '  }, first: 5) {' >> $GITHUB_STEP_SUMMARY
           echo '    edges {' >> $GITHUB_STEP_SUMMARY
           echo '      node {' >> $GITHUB_STEP_SUMMARY
           echo '        gitoidSha256' >> $GITHUB_STEP_SUMMARY
